@@ -1,0 +1,15 @@
+name: linkerbot
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - numpy>=1.24
+  - pyyaml>=6.0
+  - pillow>=10.0
+  - pip
+  - pip:
+      - opencv-python>=4.8
+      - mediapipe>=0.10
+      - python-can>=4.0
+      - mujoco>=3.0

@@ -1,0 +1,19 @@
+# LinkerBot 语音控制配置
+
+voice:
+  # 唤醒词（VAD+Whisper 转录后在文本中匹配）
+  wake_word: "机械手"
+
+  # DeepSeek API（OpenAI 兼容）
+  api_key: "${DEEPSEEK_API_KEY}"   # 环境变量，或直接写 sk-xxx
+  api_base: "https://api.deepseek.com"
+  model: "deepseek-chat"
+
+  # Whisper 模型大小：tiny(最快) / base(推荐) / small / medium
+  whisper_model: "base"
+
+  # VAD 参数
+  vad_threshold: 0.5           # Silero VAD 语音概率阈值
+  silence_timeout: 1.5         # 静音超时秒数（说完一句话后停顿多久触发转录）
+  max_record: 5.0              # 最长录音秒数
+  sample_rate: 16000           # 采样率（固定 16kHz）

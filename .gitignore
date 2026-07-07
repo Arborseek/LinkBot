@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+assets/hand_landmarker.task
+.DS_Store
+
+# URDF / MuJoCo 网格文件体积大，clone 后请自行下载或保留本地副本
+vendor/**/meshes/
+vendor/**/*.STL
+vendor/**/*.stl
+assets/**/*.STL
+assets/**/*.stl

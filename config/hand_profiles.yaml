@@ -1,0 +1,132 @@
+# 支持的灵巧手型号与关节限位模板
+# lo=张开, hi=弯曲 (rad)；SDK 输出时 255=张开, 0=弯曲
+
+models:
+  O6:
+    dof: 6
+    speed_len: 6
+    torque_len: 6
+    joint_names:
+      - thumb_pitch
+      - thumb_yaw
+      - index_pitch
+      - middle_pitch
+      - ring_pitch
+      - pinky_pitch
+    open_pose: [255, 255, 255, 255, 255, 255]
+    joint_limits:
+      thumb_pitch: [0.0, 0.7]
+      thumb_yaw: [0.0, 1.57]
+      index_pitch: [0.0, 1.57]
+      middle_pitch: [0.0, 1.57]
+      ring_pitch: [0.0, 1.57]
+      pinky_pitch: [0.0, 1.57]
+
+  L7:
+    dof: 7
+    speed_len: 7
+    torque_len: 7
+    joint_names:
+      - thumb_pitch
+      - thumb_yaw
+      - index_pitch
+      - middle_pitch
+      - ring_pitch
+      - pinky_pitch
+      - thumb_roll
+    open_pose: [255, 255, 255, 255, 255, 255, 255]
+    joint_limits:
+      thumb_pitch: [0.0, 0.7]
+      thumb_yaw: [0.0, 1.57]
+      index_pitch: [0.0, 1.57]
+      middle_pitch: [0.0, 1.57]
+      ring_pitch: [0.0, 1.57]
+      pinky_pitch: [0.0, 1.57]
+      thumb_roll: [0.0, 1.57]
+
+  L10:
+    dof: 10
+    speed_len: 5
+    torque_len: 5
+    joint_names:
+      - thumb_base
+      - thumb_abduction
+      - index_base
+      - middle_base
+      - ring_base
+      - pinky_base
+      - index_abduction
+      - ring_abduction
+      - pinky_abduction
+      - thumb_roll
+    # 仿真/重定向参考：SDK open_palm（J1 拇摆=70）
+    open_pose: [255, 70, 255, 255, 255, 255, 255, 255, 255, 255]
+    # 真机默认张开：SDK init_linker_hand L10 左手（拇横 J9=41、侧摆 J6-8=180）
+    hardware_open_pose: [255, 200, 255, 255, 255, 255, 180, 180, 180, 41]
+    joint_limits:
+      thumb_base: [0.0, 1.45]
+      thumb_abduction: [0.0, 1.43]
+      index_base: [0.0, 1.62]
+      middle_base: [0.0, 1.62]
+      ring_base: [0.0, 1.62]
+      pinky_base: [0.0, 1.62]
+      index_abduction: [0.0, 0.26]
+      ring_abduction: [-0.26, 0.0]
+      pinky_abduction: [-0.26, 0.0]
+      thumb_roll: [-0.52, 1.01]
+
+  L20:
+    dof: 20
+    speed_len: 5
+    torque_len: 5
+    joint_names:
+      - thumb_base
+      - index_base
+      - middle_base
+      - ring_base
+      - pinky_base
+      - thumb_abduction
+      - index_abduction
+      - middle_abduction
+      - ring_abduction
+      - pinky_abduction
+      - thumb_roll
+      - reserved_1
+      - reserved_2
+      - reserved_3
+      - reserved_4
+      - thumb_tip
+      - index_tip
+      - middle_tip
+      - ring_tip
+      - pinky_tip
+    open_pose: [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
+    joint_limits:
+      thumb_base: [0.0, 0.87]
+      index_base: [0.0, 1.4]
+      middle_base: [0.0, 1.4]
+      ring_base: [0.0, 1.4]
+      pinky_base: [0.0, 1.4]
+      thumb_abduction: [-0.297, 0.683]
+      index_abduction: [-0.26, 0.26]
+      middle_abduction: [-0.26, 0.26]
+      ring_abduction: [-0.26, 0.26]
+      pinky_abduction: [-0.26, 0.26]
+      thumb_roll: [0.122, 1.78]
+      reserved_1: [0.0, 0.0]
+      reserved_2: [0.0, 0.0]
+      reserved_3: [0.0, 0.0]
+      reserved_4: [0.0, 0.0]
+      thumb_tip: [0.0, 1.29]
+      index_tip: [0.0, 1.08]
+      middle_tip: [0.0, 1.08]
+      ring_tip: [0.0, 1.08]
+      pinky_tip: [0.0, 1.08]
+
+init:
+  hold_frames: 45
+  min_mcp_angle: 2.2
+  # 归一化 ROI [x1, y1, x2, y2]
+  rois:
+    left: [0.05, 0.12, 0.42, 0.88]
+    right: [0.58, 0.12, 0.95, 0.88]
