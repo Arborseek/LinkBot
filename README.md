@@ -1,156 +1,260 @@
 # LinkBot
 
-LinkerHand 灵巧手控制与遥操作平台。通过摄像头捕捉人手姿态，实时驱动 LinkerHand 系列灵巧手；同时支持语音指令、音乐舞蹈编排，以及 HTTP API 远程控制。
+**English** | [中文](README.zh-CN.md)
 
-## 功能
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/platform-Linux-lightgrey.svg)]()
+[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](vendor/linkerhand-urdf-main/LICENSE)
 
-- **摄像头遥操作** — MediaPipe 手部追踪 + 关节重映射，支持单手/双手模式
-- **MuJoCo 仿真** — 无硬件时可 Mock 仿真预览（L10 / L20 等型号）
-- **语音控制** — 唤醒词 + ASR + LLM 意图识别，执行预设手势
-- **舞蹈模式** — 音乐节拍/歌词卡点，自动生成并播放手势序列
-- **HTTP API** — FastAPI 服务，局域网内远程调用预设姿态
+Open-source teleoperation and control stack for [LinkerHand](https://github.com/linker-bot) dexterous hands.
 
-## 支持型号
+Track your hand with a camera, retarget joints in real time, and drive hardware over CAN — or preview everything in MuJoCo without a physical hand. LinkBot also ships with voice control, music-driven dance choreography, and a FastAPI remote-control server.
 
-O6、L7、L10、L20 等（详见 `config/hand_profiles.yaml`）。
+## Table of Contents
 
-## 环境要求
+- [Features](#features)
+- [Supported Hardware](#supported-hardware)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Teleoperation](#teleoperation)
+  - [HTTP API Server](#http-api-server)
+  - [Voice Control](#voice-control)
+  - [Dance Mode](#dance-mode)
+- [Configuration](#configuration)
+- [Project Layout](#project-layout)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
 
-- Ubuntu / Linux（CAN 总线控制需 Linux）
-- Python 3.11
-- Conda（推荐）
-- USB 摄像头
-- LinkerHand 灵巧手 + CAN 适配器（硬件模式）
-- [LinkerHand Python SDK](https://github.com/linker-bot/linkerhand-python-sdk)（置于 `vendor/linkerhand-python-sdk`）
+## Features
 
-## 快速开始
+| Module | Description |
+|--------|-------------|
+| **Camera teleoperation** | MediaPipe hand tracking + joint retargeting; single-hand and dual-hand modes |
+| **MuJoCo simulation** | Mock / preview mode when hardware is unavailable |
+| **Voice control** | Wake word, ASR, and LLM intent routing to preset gestures |
+| **Dance mode** | Beat / lyrics sync with auto-generated gesture choreography |
+| **HTTP API** | FastAPI service for remote gesture execution on the local network |
 
-### 1. 创建 Conda 环境
+## Supported Hardware
+
+LinkerHand models supported out of the box include **O6**, **L7**, **L10**, **L20**, and more.
+
+See [`config/hand_profiles.yaml`](config/hand_profiles.yaml) for joint limits, DOF, and default open poses.
+
+## Prerequisites
+
+| Requirement | Notes |
+|-------------|-------|
+| **OS** | Ubuntu / Linux recommended (CAN bus required for hardware mode) |
+| **Python** | 3.11 |
+| **Conda** | Recommended for environment management |
+| **Camera** | USB webcam for teleoperation |
+| **LinkerHand + CAN adapter** | Required for hardware control |
+| **LinkerHand Python SDK** | Clone into `vendor/linkerhand-python-sdk` |
+| **MediaPipe model** | `assets/hand_landmarker.task` (not bundled) |
+
+Optional for voice / dance LLM features:
+
+- `DEEPSEEK_API_KEY` environment variable
+
+Optional for the HTTP API:
+
+```bash
+pip install fastapi uvicorn
+```
+
+## Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Arborseek/LinkBot.git
+cd LinkBot
+```
+
+### 2. Create the Conda environment
 
 ```bash
 bash scripts/setup_conda.sh
 conda activate linkerbot
 ```
 
-### 2. 下载手部追踪模型
+### 3. Install the hand tracking model
 
-将 MediaPipe Hand Landmarker 模型放到：
+Download the [MediaPipe Hand Landmarker](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) model and place it at:
 
-```
+```text
 assets/hand_landmarker.task
 ```
 
-### 3. 获取 URDF 与网格文件（仿真需要）
-
-URDF 描述文件已包含在仓库中，但 STL 网格体积较大未纳入 Git。请任选其一：
+### 4. Install the LinkerHand SDK (hardware mode)
 
 ```bash
-# 方式 A：从官方仓库下载完整 URDF（含 meshes）
+git clone https://github.com/linker-bot/linkerhand-python-sdk vendor/linkerhand-python-sdk
+```
+
+### 5. Fetch URDF meshes (simulation)
+
+URDF files are included, but STL meshes are excluded from Git due to size.
+
+```bash
 git clone https://github.com/linker-bot/linkerhand-urdf vendor/linkerhand-urdf-main
 bash scripts/setup_linker_urdf.sh
 ```
 
-L10 仿真网格位于 `assets/mujoco/linker_hand_l10/`，若缺失请从本地备份或官方资源获取。
+L10 MuJoCo meshes should live under `assets/mujoco/linker_hand_l10/`. Restore them from a local backup or official resources if missing.
 
-### 4. 启动遥操作
+## Usage
+
+### Teleoperation
 
 ```bash
 python main.py
-# 指定摄像头
+
+# use a specific camera device
 python main.py --camera 0
 ```
 
-启动后按界面提示完成手型初始化校准，按 `Space` 开始遥操作。
+1. Complete the on-screen setup wizard.
+2. Calibrate the initial hand pose.
+3. Press `Space` to start teleoperation.
 
-### 快捷键
+| Key | Action |
+|-----|--------|
+| `Space` | Start / pause teleoperation |
+| `V` | Toggle voice mode |
+| `D` | Toggle dance mode |
+| `Q` / `Esc` | Quit |
 
-| 按键 | 功能 |
-|------|------|
-| `Space` | 开始/暂停遥操作 |
-| `V` | 切换语音模式 |
-| `D` | 切换舞蹈模式 |
-| `Q` / `Esc` | 退出 |
+### HTTP API Server
 
-## HTTP API 服务
-
-在 Ubuntu 主机上启动 API（需 CAN 与灵巧手已连接）：
+Run on the machine connected to the dexterous hand:
 
 ```bash
 bash run_workserve.sh
-# 或
+```
+
+Or manually:
+
+```bash
 PYTHONPATH=src uvicorn linkerbot.api.server:app --host 0.0.0.0 --port 8765
 ```
 
-### 常用接口
+Default port: **8765** (configurable in `config/default.yaml` → `api`).
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/health` | 健康检查 |
-| GET | `/gestures` | 列出所有预设姿态 |
-| POST | `/gesture/{name}` | 执行单个姿态 |
-| POST | `/gesture/sequence` | 执行姿态序列 |
-| POST | `/open` | 张开手（复位） |
+#### Endpoints
 
-示例：
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/health` | Service and hardware status |
+| `GET` | `/gestures` | List available preset gestures |
+| `POST` | `/gesture/{name}` | Execute one gesture |
+| `POST` | `/gesture/sequence` | Execute a timed gesture sequence |
+| `POST` | `/open` | Open hand / reset pose |
+
+Example:
 
 ```bash
 curl http://127.0.0.1:8765/health
+
 curl -X POST http://127.0.0.1:8765/gesture/点赞
+
 curl -X POST http://127.0.0.1:8765/gesture/sequence \
   -H "Content-Type: application/json" \
   -d '{"gestures":["张开手掌","握拳","点赞"],"interval":2.0}'
 ```
 
-预设姿态定义见 `config/gestures.yaml`。
+Preset gestures are defined in [`config/gestures.yaml`](config/gestures.yaml).
 
-## 语音模式
+### Voice Control
 
 ```bash
 export DEEPSEEK_API_KEY="sk-xxx"
 bash run_voice.sh
 ```
 
-或在主程序中按 `V` 进入语音模式。配置见 `config/voice.yaml` 与 `config/default.yaml` 中的 `voice` 段。
+You can also press `V` inside the main application. See [`config/voice.yaml`](config/voice.yaml) and the `voice` section in [`config/default.yaml`](config/default.yaml).
 
-## 配置
+### Dance Mode
 
-主配置文件：`config/default.yaml`
+Press `D` in the main application, or configure the `dance` section in [`config/default.yaml`](config/default.yaml).
 
-| 配置段 | 说明 |
-|--------|------|
-| `camera` | 摄像头参数 |
-| `tracking` | MediaPipe 追踪阈值 |
-| `retarget` | 关节映射与平滑 |
-| `hardware` | CAN 接口、速度、力矩 |
-| `simulation` | MuJoCo 仿真 |
-| `voice` | 语音与 LLM |
-| `dance` | 舞蹈编排 |
-| `api` | HTTP 服务 |
+Dance choreography can be generated from audio beats, ASR lyrics, or LLM fallback sequences.
 
-本地敏感项（如 CAN sudo 密码）请在 `config/default.yaml` 的 `hardware.sudo_password` 中自行填写，勿提交到公开仓库。
+## Configuration
 
-## 项目结构
+Primary config file: [`config/default.yaml`](config/default.yaml)
 
-```
+| Section | Purpose |
+|---------|---------|
+| `camera` | Camera device, resolution, mirroring |
+| `tracking` | MediaPipe confidence thresholds |
+| `retarget` | Joint mapping, smoothing, pinch detection |
+| `hardware` | CAN interface, speed, torque, SDK path |
+| `simulation` | MuJoCo model and display options |
+| `voice` | Wake word, ASR, LLM provider |
+| `dance` | Audio path, choreography source, timing |
+| `api` | HTTP host, port, hand model / side |
+
+**Security note:** keep local secrets such as `hardware.sudo_password` and API keys out of version control. Use environment variables or an untracked local override.
+
+## Project Layout
+
+```text
 LinkBot/
-├── main.py                 # 主入口（遥操作）
-├── config/                 # 配置文件
+├── main.py                 # Teleoperation entry point
+├── config/                 # YAML configuration
 ├── src/linkerbot/
-│   ├── app.py              # 主应用逻辑
-│   ├── api/                # HTTP API
-│   ├── capture/            # 摄像头
-│   ├── tracking/           # 手部追踪
-│   ├── retarget/           # 姿态重映射
-│   ├── hardware/           # 硬件驱动
-│   ├── sim/                # MuJoCo 仿真
-│   ├── voice/              # 语音控制
-│   ├── dance/              # 舞蹈模式
-│   └── viz/                # 可视化
-├── scripts/                # 安装与测试脚本
-├── assets/                 # 模型与 MuJoCo 资源
-└── vendor/                 # 第三方依赖（URDF 等）
+│   ├── app.py              # Main application loop
+│   ├── api/                # FastAPI server
+│   ├── capture/            # Camera capture
+│   ├── tracking/           # Hand tracking
+│   ├── retarget/           # Pose retargeting
+│   ├── hardware/           # CAN / SDK drivers
+│   ├── sim/                # MuJoCo simulation
+│   ├── voice/              # Voice pipeline
+│   ├── dance/              # Dance choreography
+│   └── viz/                # UI overlays and rendering
+├── scripts/                # Setup and test scripts
+├── assets/                 # Models, music, MuJoCo assets
+└── vendor/                 # Third-party dependencies
 ```
 
-## 许可证
+## Development
 
-本项目包含 `vendor/linkerhand-urdf-main`，其许可证见对应目录下的 LICENSE 文件。
+Run helper scripts under `scripts/`:
+
+```bash
+python scripts/test_gestures.py
+python scripts/test_api.py
+python scripts/test_voice_pipeline.py
+```
+
+When adding a new hand model, update [`config/hand_profiles.yaml`](config/hand_profiles.yaml) and verify retargeting in both simulation and hardware modes.
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-change`
+3. Commit your changes with a clear message
+4. Open a Pull Request against `main`
+
+Please keep changes focused, match existing code style, and avoid committing secrets or large binary assets.
+
+## Acknowledgments
+
+- [LinkerHand](https://github.com/linker-bot) hardware and SDK
+- [linkerhand-urdf](https://github.com/linker-bot/linkerhand-urdf) robot descriptions
+- [MediaPipe](https://developers.google.com/mediapipe) hand tracking
+- [MuJoCo](https://mujoco.org/) simulation
+
+## License
+
+Third-party URDF assets under [`vendor/linkerhand-urdf-main/`](vendor/linkerhand-urdf-main/) are licensed under the [Apache License 2.0](vendor/linkerhand-urdf-main/LICENSE).
+
+Other project files are provided as open source. If you redistribute or modify this project, review the licenses of all bundled third-party components.
